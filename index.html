@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Confidence Spark Program</title>
+
+  <!-- Optional: use Fredoka if available; falls back safely -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#eaf6ff;
+      --dot: rgba(32, 160, 220, 0.18);
+      --card:#ffffff;
+      --ink:#1d2a35;
+      --muted:#667483;
+      --shadow: 0 10px 25px rgba(0,0,0,.08);
+      --radius: 18px;
+
+      --brand:#22a6d5;
+      --brand2:#5bc2e7;
+
+      --good:#2aa84a;
+      --warn:#d97b00;
+      --bad:#d83b3b;
+
+      --btn:#1f2a37;
+      --btn2:#ffffff;
+      --line: rgba(20, 40, 60, 0.12);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      color:var(--ink);
+      font-family: Fredoka, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12px 12px, var(--dot) 1.6px, transparent 1.7px) 0 0/28px 28px,
+        var(--bg);
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 22px 16px 38px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 16px;
+    }
+
+    .topbar a{
+      text-decoration:none;
+      color: var(--ink);
+      font-weight: 600;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.7);
+      padding: 10px 12px;
+      border-radius: 12px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      text-align:right;
+    }
+
+    .title h1{
+      margin:0;
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: .2px;
+    }
+    .title p{
+      margin:0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .card{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(0,0,0,.05);
+      overflow:hidden;
+    }
+
+    .cardHead{
+      padding: 18px 18px 0;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(34,166,213,.12);
+      color: var(--brand);
+      border: 1px solid rgba(34,166,213,.22);
+      text-transform: uppercase;
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    .content{
+      padding: 16px 18px 18px;
+    }
+
+    .content h2{
+      margin: 0 0 8px;
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .content p{
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+      .title{ text-align:left; }
+      .topbar{ flex-direction:column; align-items:stretch; }
+      .title{ width:100%; }
+    }
+
+    .panel{
+      background: rgba(250,252,255,.85);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .panel h3{
+      margin:0 0 6px;
+      font-size: 18px;
+    }
+
+    .panel p{
+      margin:0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .choices{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top: 10px;
+    }
+
+    .pill{
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .pill:hover{ transform: translateY(-1px); box-shadow: 0 8px 16px rgba(0,0,0,.06); }
+    .pill[aria-pressed="true"]{
+      border-color: rgba(34,166,213,.45);
+      background: rgba(34,166,213,.08);
+      color: var(--ink);
+    }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+    }
+
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius: 999px;
+      padding: 12px 14px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      background: var(--btn);
+      color: var(--btn2);
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.12); }
+    .btn.secondary{
+      background: rgba(255,255,255,.9);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow:none;
+    }
+    .btn.ghost{
+      background: transparent;
+      color: var(--ink);
+      border: 1px dashed var(--line);
+      box-shadow:none;
+      font-weight: 700;
+    }
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+
+    .divider{
+      height:1px;
+      background: var(--line);
+      margin: 14px 0;
+    }
+
+    .mini{
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 680px){
+      .twoCol{ grid-template-columns: 1fr; }
+    }
+
+    .levelCard{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .levelCard h4{
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+    .levelCard ul{
+      margin:0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .levelCard li{ margin: 6px 0; }
+
+    .inputRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+      align-items:center;
+    }
+    input[type="password"], input[type="text"]{
+      padding: 12px 12px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      font-weight: 700;
+      min-width: 220px;
+      outline:none;
+    }
+
+    .progress{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top: 12px;
+      padding: 14px 18px;
+      border-top: 1px solid rgba(0,0,0,.06);
+      background: rgba(250,252,255,.85);
+    }
+
+    .bar{
+      height: 10px;
+      background: rgba(34,166,213,.12);
+      border: 1px solid rgba(34,166,213,.20);
+      border-radius: 999px;
+      overflow:hidden;
+      width: 100%;
+      max-width: 420px;
+    }
+    .bar > div{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--brand), var(--brand2));
+      border-radius: 999px;
+      transition: width .25s ease;
+    }
+
+    .kpi{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .chip{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--ink);
+      white-space:nowrap;
+    }
+
+    .callout{
+      border: 1px solid rgba(34,166,213,.22);
+      background: rgba(34,166,213,.08);
+      padding: 12px;
+      border-radius: 14px;
+      color: var(--ink);
+      font-weight: 600;
+      line-height: 1.35;
+      margin-top: 10px;
+    }
+
+    .countdown{
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <!-- Change href to your actual home path if needed -->
+      <a href="../index.html">Back to Brave Feelings</a>
+      <div class="title">
+        <h1>Confidence Spark</h1>
+        <p>Practice brave steps for real life moments</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHead">
+        <div class="badge">Add-on Program</div>
+        <div class="badge" id="lockBadge" style="display:none;">Locked</div>
+      </div>
+
+      <div class="content" id="view"></div>
+
+      <div class="progress">
+        <div class="bar" aria-label="Progress">
+          <div id="barFill"></div>
+        </div>
+        <div class="kpi">
+          <div class="chip" id="kpiAttempts">Attempts: 0</div>
+          <div class="chip" id="kpiWins">Brave tries: 0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/**
+ * CONFIDENCE SPARK ADD-ON
+ * - One-file mini-program
+ * - Unlock gate (optional): enter code from Etsy PDF
+ * - Built as a step-by-step "webpage" flow (in one file for easy hosting)
+ * - Scenario system: add more scenarios by duplicating the SCENARIOS object
+ */
+
+const SETTINGS = {
+  // Set this to the code you give buyers in your Etsy PDF.
+  // Example: "5511"
+  REQUIRED_UNLOCK_CODE: "SET-YOUR-CODE",
+
+  STORAGE_KEYS: {
+    unlocked: "bfl_confidenceSpark_unlocked",
+    stats: "bfl_confidenceSpark_stats"
+  }
+};
+
+// Scenario data: duplicate this object to create new scenarios later.
+const SCENARIOS = {
+  asking_for_help: {
+    title: "Asking for Help",
+    oneLine: "I need help, but I don’t want to look dumb.",
+    story: [
+      "You’re working on something and you get stuck.",
+      "You look around and think, “Everyone else gets it.”",
+      "Your mouth wants to ask, but your voice feels trapped.",
+      "You worry someone will judge you or you’ll look silly."
+    ],
+    bodySignals: [
+      "My heart beats fast",
+      "My face feels hot",
+      "My throat feels tight",
+      "My stomach flips",
+      "My hands feel shaky",
+      "My mind goes blank",
+      "I want to hide",
+      "I feel frozen"
+    ],
+    worryThoughts: [
+      "If I ask, I’ll look dumb.",
+      "They will be annoyed.",
+      "Everyone will stare.",
+      "I should figure it out alone."
+    ],
+    braveThoughts: [
+      "Asking for help is how I learn.",
+      "I only need one small hint.",
+      "It’s okay to not know yet.",
+      "I can be nervous and still ask."
+    ],
+    stepLadder: {
+      easy: [
+        "Raise your hand a little (halfway).",
+        "Walk closer to the teacher first.",
+        "Whisper to yourself what you need: “I need help with number ___.”"
+      ],
+      medium: [
+        "Ask for one hint: “Can you show me the first step?”",
+        "Say, “I’m stuck on this part.”",
+        "Ask, “Can you explain it one more time?”"
+      ],
+      brave: [
+        "Say exactly what you don’t understand.",
+        "Ask a full question: “I tried ___, but I don’t know what to do next.”",
+        "Ask for a quick check: “Am I starting this the right way?”"
+      ]
+    },
+    scripts: [
+      {
+        label: "Quick Help",
+        lines: ["Excuse me…", "Can you help me with this part?", "I’m stuck right here.", "Thank you."]
+      },
+      {
+        label: "One Hint",
+        lines: ["Excuse me…", "Can I get one small hint?", "What should I do first?", "Thank you."]
+      },
+      {
+        label: "I Tried First",
+        lines: ["Excuse me…", "I tried to do it this way…", "But I’m stuck on the next step.", "Can you show me what to do next?"]
+      }
+    ]
+  }
+};
+
+// ---------------- State + Storage ----------------
+const DEFAULT_STATE = {
+  unlocked: false,
+  stepIndex: 0,
+  nervousLevel: null, // "little" | "medium" | "very"
+  scenarioKey: "asking_for_help",
+  selectedSignals: new Set(),
+  chosenWorryThought: null,
+  chosenBraveThought: null,
+  chosenStep: null,     // string
+  chosenScriptIndex: null,
+  revealLineIndex: 0,
+  countdown: null,
+  lastTryResult: null   // "hard" | "okay" | "easier"
+};
+
+let state = {...DEFAULT_STATE};
+let stats = loadStats();
+
+// Steps (these are your "webpages")
+const STEPS = [
+  { id: "unlock", title: "Unlock", render: renderUnlock, canGoNext: canUnlockNext, next: onUnlockNext },
+  { id: "landing", title: "Start", render: renderLanding, canGoNext: () => true, next: () => goStep(2) },
+  { id: "checkin", title: "Check-in", render: renderCheckin, canGoNext: () => !!state.nervousLevel },
+  { id: "pickScenario", title: "Pick a Situation", render: renderPickScenario, canGoNext: () => !!state.scenarioKey },
+  { id: "story", title: "Story Scene", render: renderStory, canGoNext: () => true },
+  { id: "signals", title: "Body Signals", render: renderSignals, canGoNext: () => state.selectedSignals.size > 0 },
+  { id: "reset", title: "Quick Reset", render: renderReset, canGoNext: () => true },
+  { id: "thoughts", title: "Brave Thoughts", render: renderThoughts, canGoNext: () => !!state.chosenWorryThought && !!state.chosenBraveThought },
+  { id: "ladder", title: "Brave Step", render: renderLadder, canGoNext: () => !!state.chosenStep },
+  { id: "practice", title: "Practice Words", render: renderPractice, canGoNext: () => state.chosenScriptIndex !== null },
+  { id: "goTry", title: "Real-Life Try", render: renderGoTry, canGoNext: () => true },
+  { id: "checkback", title: "Check Back", render: renderCheckBack, canGoNext: () => state.lastTryResult !== null },
+  { id: "finish", title: "Finish", render: renderFinish, canGoNext: () => true }
+];
+
+function init(){
+  // Determine unlock
+  const unlocked = localStorage.getItem(SETTINGS.STORAGE_KEYS.unlocked) === "true";
+  state.unlocked = unlocked;
+
+  // If unlock code not set, treat as unlocked (so you can test)
+  const codeNotSet = SETTINGS.REQUIRED_UNLOCK_CODE === "SET-YOUR-CODE";
+  if (codeNotSet) state.unlocked = true;
+
+  // Start step
+  state.stepIndex = state.unlocked ? 1 : 0;
+
+  updateKPIs();
+  render();
+}
+init();
+
+function saveUnlocked(value){
+  localStorage.setItem(SETTINGS.STORAGE_KEYS.unlocked, value ? "true" : "false");
+}
+
+function loadStats(){
+  try{
+    const raw = localStorage.getItem(SETTINGS.STORAGE_KEYS.stats);
+    if(!raw) return { attempts: 0, wins: 0 };
+    const obj = JSON.parse(raw);
+    return { attempts: Number(obj.attempts||0), wins: Number(obj.wins||0) };
+  }catch(e){
+    return { attempts: 0, wins: 0 };
+  }
+}
+
+function saveStats(){
+  localStorage.setItem(SETTINGS.STORAGE_KEYS.stats, JSON.stringify(stats));
+}
+
+function updateKPIs(){
+  document.getElementById("kpiAttempts").textContent = `Attempts: ${stats.attempts}`;
+  document.getElementById("kpiWins").textContent = `Brave tries: ${stats.wins}`;
+}
+
+function setProgressBar(){
+  const total = STEPS.length - 1; // ignore finish? keep simple
+  const idx = Math.min(state.stepIndex, total);
+  const pct = Math.round((idx / total) * 100);
+  document.getElementById("barFill").style.width = pct + "%";
+}
+
+function currentScenario(){
+  return SCENARIOS[state.scenarioKey];
+}
+
+function goStep(index){
+  state.stepIndex = Math.max(0, Math.min(index, STEPS.length - 1));
+  state.revealLineIndex = 0;
+  render();
+}
+
+function nextStep(){
+  const step = STEPS[state.stepIndex];
+  if(step.next) step.next();
+  if(step.canGoNext && !step.canGoNext()) return; // safety
+  if(state.stepIndex < STEPS.length - 1){
+    state.stepIndex++;
+    state.revealLineIndex = 0;
+    render();
+  }
+}
+
+function prevStep(){
+  if(state.stepIndex > 0){
+    state.stepIndex--;
+    state.revealLineIndex = 0;
+    render();
+  }
+}
+
+function render(){
+  setProgressBar();
+
+  const step = STEPS[state.stepIndex];
+  const view = document.getElementById("view");
+
+  // Lock badge
+  const lockBadge = document.getElementById("lockBadge");
+  lockBadge.style.display = state.unlocked ? "none" : "inline-flex";
+
+  // Render step content
+  view.innerHTML = step.render();
+
+  // Wire up common nav buttons
+  const backBtn = document.getElementById("btnBack");
+  const nextBtn = document.getElementById("btnNext");
+
+  if(backBtn){
+    backBtn.disabled = (state.stepIndex === 0 || state.stepIndex === 1 && !state.unlocked);
+    backBtn.addEventListener("click", () => prevStep());
+  }
+  if(nextBtn){
+    nextBtn.disabled = !(step.canGoNext ? step.canGoNext() : true);
+    nextBtn.addEventListener("click", () => {
+      const s = STEPS[state.stepIndex];
+      // special next hook
+      if(s.next){ s.next(); }
+      // re-check
+      if(s.canGoNext && !s.canGoNext()) { render(); return; }
+      nextStep();
+    });
+  }
+
+  // Step-specific event wiring
+  stepAfterRender(step.id);
+
+  // Update next disabled state if we changed something immediately
+  refreshNextDisabled();
+}
+
+function refreshNextDisabled(){
+  const step = STEPS[state.stepIndex];
+  const nextBtn = document.getElementById("btnNext");
+  if(nextBtn){
+    nextBtn.disabled = !(step.canGoNext ? step.canGoNext() : true);
+  }
+}
+
+// ---------------- Step Renderers ----------------
+function navRow(labelNext="Next"){
+  return `
+    <div class="divider"></div>
+    <div class="btnRow">
+      <button class="btn secondary" id="btnBack">Back</button>
+      <button class="btn" id="btnNext">${labelNext}</button>
+    </div>
+  `;
+}
+
+function renderUnlock(){
+  // If code not set, allow skip
+  const codeNotSet = SETTINGS.REQUIRED_UNLOCK_CODE === "SET-YOUR-CODE";
+  return `
+    <h2>Unlock Confidence Spark</h2>
+    <p>Enter your program code from the Etsy download to unlock this add-on.</p>
+
+    <div class="panel">
+      <h3>Unlock code</h3>
+      <p class="mini">Tip: This is the short code you provide buyers in the PDF.</p>
+      <div class="inputRow">
+        <input id="unlockInput" type="password" placeholder="Enter code" autocomplete="off" />
+        <button class="btn" id="unlockBtn">Unlock</button>
+        <button class="btn ghost" id="unlockClear">Clear</button>
+      </div>
+      <div class="callout" id="unlockMsg" style="display:none;"></div>
+    </div>
+
+    ${codeNotSet ? `<div class="callout">Unlock is currently disabled because REQUIRED_UNLOCK_CODE is not set. Set it in the code when you publish.</div>` : ``}
+
+    ${navRow("Continue")}
+  `;
+}
+
+function canUnlockNext(){
+  return state.unlocked;
+}
+
+function onUnlockNext(){
+  // nothing special
+}
+
+function renderLanding(){
+  const sc = currentScenario();
+  return `
+    <h2>Confidence Spark Program</h2>
+    <p>This program helps you practice brave steps for real-life moments. We’ll go slowly and keep it simple.</p>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>What we do</h3>
+        <p>Pick a situation, steady your body, choose a brave thought, practice a short script, then try one small brave step.</p>
+      </div>
+      <div class="panel">
+        <h3>Important reminder</h3>
+        <p>You don’t have to feel confident to practice brave. Small tries count.</p>
+      </div>
+    </div>
+
+    <div class="callout">Today’s practice scenario: <strong>${escapeHtml(sc.title)}</strong> — ${escapeHtml(sc.oneLine)}</div>
+
+    ${navRow("Start")}
+  `;
+}
+
+function renderCheckin(){
+  return `
+    <h2>Check-in</h2>
+    <p>How nervous do you feel right now?</p>
+
+    <div class="choices" role="group" aria-label="Nervous level">
+      ${choicePill("level_little","A little nervous", state.nervousLevel==="little")}
+      ${choicePill("level_medium","Medium nervous", state.nervousLevel==="medium")}
+      ${choicePill("level_very","Very nervous", state.nervousLevel==="very")}
+    </div>
+
+    <div class="callout" id="checkinMsg" style="display:none;"></div>
+
+    ${navRow("Next")}
+  `;
+}
+
+function renderPickScenario(){
+  const keys = Object.keys(SCENARIOS);
+  return `
+    <h2>Pick a situation</h2>
+    <p>Choose what you want to practice right now.</p>
+
+    <div class="twoCol">
+      ${keys.map(k=>{
+        const s = SCENARIOS[k];
+        const picked = state.scenarioKey===k;
+        return `
+          <div class="levelCard" style="cursor:pointer;" data-scenario="${k}">
+            <h4>${escapeHtml(s.title)}</h4>
+            <div class="mini">${escapeHtml(s.oneLine)}</div>
+            <div class="callout" style="margin-top:10px; display:${picked?'block':'none'};" data-picked="${k}">
+              Selected
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+
+    ${navRow("Next")}
+  `;
+}
+
+function renderStory(){
+  const s = currentScenario();
+  return `
+    <h2>${escapeHtml(s.title)}</h2>
+    <p>Read this scene. If it fits, continue.</p>
+
+    <div class="panel">
+      ${s.story.map(line=>`<p style="margin:0 0 8px; color:var(--ink); font-weight:600;">${escapeHtml(line)}</p>`).join("")}
+      <div class="mini" style="margin-top:10px;">Getting stuck is normal. Asking for help is a smart skill.</div>
+    </div>
+
+    ${navRow("That’s me")}
+  `;
+}
+
+function renderSignals(){
+  const s = currentScenario();
+  const picked = state.selectedSignals;
+
+  return `
+    <h2>What is your body doing?</h2>
+    <p>Tap what you notice right now. Choose at least one.</p>
+
+    <div class="choices" role="group" aria-label="Body signals">
+      ${s.bodySignals.map((t,i)=> choicePill(`sig_${i}`, t, picked.has(t))).join("")}
+    </div>
+
+    <div class="callout">These are “alarm” signals. They feel strong, but they can calm down.</div>
+
+    ${navRow("Next")}
+  `;
+}
+
+function renderReset(){
+  return `
+    <h2>Quick Reset</h2>
+    <p>Pick one reset. We’ll do it together.</p>
+
+    <div class="twoCol">
+      <div class="panel">
+        <h3>Slow Exhale</h3>
+        <p>Breathe in… then breathe out slower than in.</p>
+        <div class="btnRow">
+          <button class="btn" id="doExhale">Do this reset</button>
+          <button class="btn secondary" id="stopExhale" disabled>Stop</button>
+        </div>
+        <div class="countdown" id="exhaleCount" style="display:none;"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Shoulder Drop</h3>
+        <p>Lift shoulders up… drop them down… soften your jaw.</p>
+        <div class="btnRow">
+          <button class="btn" id="doShoulders">Do this reset</button>
+        </div>
+        <div class="mini" id="shoulderMsg" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Palm Press</h3>
+        <p>Press your palms together for 10 seconds. Feel steady.</p>
+        <div class="btnRow">
+          <button class="btn" id="doPalms">Do this reset</button>
+        </div>
+        <div class="mini" id="palmMsg" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <div class="callout">Good. Your body is getting steadier. Now we choose a brave thought.</div>
+
+    ${navRow("Next")}
+  `;
+}
+
+function renderThoughts(){
+  const s = currentScenario();
+  return `
+    <h2>Brave Thoughts</h2>
+    <p>Your nervous brain might say…</p>
+
+    <div class="choices" role="group" aria-label="Worry thoughts">
+      ${s.worryThoughts.map((t,i)=> choicePill(`wt_${i}`, t, state.chosenWorryThought===t)).join("")}
+    </div>
+
+    <div class="divider"></div>
+
+    <p>Try a brave thought instead. Pick one.</p>
+
+    <div class="choices" role="group" aria-label="Brave thoughts">
+      ${s.braveThoughts.map((t,i)=> choicePill(`bt_${i}`, t, state.chosenBraveThought===t)).join("")}
+    </div>
+
+    ${state.chosenBraveThought ? `<div class="callout">Keep this with you: <strong>${escapeHtml(state.chosenBraveThought)}</strong></div>` : ``}
+
+    ${navRow("Next")}
+  `;
+}
+
+function renderLadder(){
+  const s = currentScenario();
+  const L = s.stepLadder;
+
+  return `
+    <h2>Choose your brave step</h2>
+    <p>Pick one step for today. Small is still brave.</p>
+
+    <div class="twoCol">
+      ${ladderCard("Easy Step", L.easy, "easy")}
+      ${ladderCard("Medium Step", L.medium, "medium")}
+      ${ladderCard("Brave Step", L.brave, "brave")}
+    </div>
+
+    <div class="callout">You don’t have to feel confident to practice brave.</div>
+
+    ${navRow("Practice it")}
+  `;
+}
+
+function renderPractice(){
+  const s = currentScenario();
+  const picked = state.chosenScriptIndex;
+
+  const scriptList = s.scripts.map((sc,idx)=>{
+    const active = picked === idx;
+    return `
+      <div class="levelCard" data-script="${idx}" style="cursor:pointer;">
+        <h4>${escapeHtml(sc.label)}</h4>
+        <div class="mini">Tap to select, then reveal one line at a time.</div>
+        <div class="callout" style="margin-top:10px; display:${active?'block':'none'};">Selected</div>
+      </div>
+    `;
+  }).join("");
+
+  const chosen = (picked !== null) ? s.scripts[picked] : null;
+  const reveal = chosen ? chosen.lines.slice(0, state.revealLineIndex) : [];
+
+  return `
+    <h2>Practice words</h2>
+    <p>Pick one script. Then reveal the lines one by one.</p>
+
+    <div class="twoCol">
+      ${scriptList}
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel">
+      <h3>Practice</h3>
+      <p class="mini">Say it once quietly. Say it again a little clearer. One more time like a brave helper-in-training.</p>
+
+      ${chosen ? `
+        <div class="callout" style="margin-top:10px;">
+          ${reveal.length ? reveal.map(line=>`<div style="margin:6px 0; font-weight:700; color:var(--ink);">${escapeHtml(line)}</div>`).join("") : `<div class="mini">Press “Reveal next line” to begin.</div>`}
+        </div>
+
+        <div class="btnRow">
+          <button class="btn" id="revealLine">${state.revealLineIndex < chosen.lines.length ? "Reveal next line" : "All lines revealed"}</button>
+          <button class="btn secondary" id="resetReveal">Start over</button>
+        </div>
+      ` : `<div class="mini">Select a script above.</div>`}
+    </div>
+
+    ${navRow("I’m ready")}
+  `;
+}
+
+function renderGoTry(){
+  return `
+    <h2>Real-life try</h2>
+    <p>Are you ready to try your brave step in real life?</p>
+
+    ${state.chosenStep ? `<div class="callout">Today’s brave step: <strong>${escapeHtml(state.chosenStep)}</strong></div>` : ``}
+    ${state.chosenBraveThought ? `<div class="callout">Brave thought: <strong>${escapeHtml(state.chosenBraveThought)}</strong></div>` : ``}
+
+    <div class="btnRow">
+      <button class="btn" id="goTryBtn">Go try it</button>
+      <button class="btn secondary" id="notYetBtn">Not yet (make it easier)</button>
+    </div>
+
+    <div class="panel" id="countPanel" style="margin-top:12px; display:none;">
+      <h3>Brave countdown</h3>
+      <div class="countdown" id="goCount">3</div>
+      <div class="mini" id="goMsg">When it reaches 0, try your brave step.</div>
+    </div>
+
+    ${navRow("I tried")}
+  `;
+}
+
+function renderCheckBack(){
+  return `
+    <h2>Check back</h2>
+    <p>Did you try a brave help-request?</p>
+
+    <div class="btnRow">
+      <button class="btn" id="yesTried">Yes, I tried</button>
+      <button class="btn secondary" id="notTried">Not yet, I’ll try again</button>
+    </div>
+
+    <div id="resultPanel" style="margin-top:12px; display:none;"></div>
+
+    ${navRow("Finish")}
+  `;
+}
+
+function renderFinish(){
+  return `
+    <h2>Confidence Spark saved</h2>
+    <p>You did something brave today. Confidence grows when you practice, even while nervous.</p>
+
+    ${state.lastTryResult ? `<div class="callout">You said it felt: <strong>${escapeHtml(state.lastTryResult)}</strong></div>` : ``}
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Next time</h3>
+        <p>Try the easy step again, or move up one level when you’re ready.</p>
+      </div>
+      <div class="panel">
+        <h3>Repeat is power</h3>
+        <p>Replay this scenario anytime before class, homework, or asking a grown-up.</p>
+      </div>
+    </div>
+
+    <div class="btnRow" style="margin-top:14px;">
+      <button class="btn" id="againBtn">Practice again</button>
+      <a class="btn secondary" href="../index.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Back to home</a>
+    </div>
+
+    <div class="divider"></div>
+    <div class="mini">If anxiety is intense or keeps disrupting daily life, consider asking a trusted adult for professional support.</div>
+  `;
+}
+
+// ---------------- Event Wiring After Render ----------------
+function stepAfterRender(stepId){
+  if(stepId === "unlock"){
+    const input = document.getElementById("unlockInput");
+    const btn = document.getElementById("unlockBtn");
+    const msg = document.getElementById("unlockMsg");
+    const clear = document.getElementById("unlockClear");
+
+    function show(text, ok){
+      msg.style.display = "block";
+      msg.textContent = text;
+      msg.style.borderColor = ok ? "rgba(42,168,74,.25)" : "rgba(216,59,59,.25)";
+      msg.style.background = ok ? "rgba(42,168,74,.08)" : "rgba(216,59,59,.08)";
+    }
+
+    btn.addEventListener("click", ()=>{
+      const code = (input.value || "").trim();
+      if(!code){
+        show("Please enter your code.", false);
+        return;
+      }
+      if(SETTINGS.REQUIRED_UNLOCK_CODE === "SET-YOUR-CODE"){
+        // Developer/test mode
+        state.unlocked = true;
+        saveUnlocked(true);
+        show("Unlocked (test mode). Set REQUIRED_UNLOCK_CODE when publishing.", true);
+        render();
+        return;
+      }
+      if(code === SETTINGS.REQUIRED_UNLOCK_CODE){
+        state.unlocked = true;
+        saveUnlocked(true);
+        show("Unlocked. You can continue.", true);
+        render();
+      }else{
+        show("That code does not match. Try again.", false);
+      }
+    });
+
+    clear.addEventListener("click", ()=>{
+      input.value = "";
+      msg.style.display = "none";
+      input.focus();
+    });
+
+    input.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") btn.click();
+    });
+  }
+
+  if(stepId === "checkin"){
+    const msg = document.getElementById("checkinMsg");
+    function setMsg(){
+      if(!state.nervousLevel){ msg.style.display="none"; return; }
+      msg.style.display="block";
+      msg.textContent =
+        state.nervousLevel==="little" ? "Great. We can try a small brave step." :
+        state.nervousLevel==="medium" ? "Okay. We’ll go slowly." :
+        "That’s a lot. We’ll start with the easiest step first.";
+    }
+
+    wirePillGroup(["level_little","level_medium","level_very"], (id)=>{
+      state.nervousLevel = id==="level_little" ? "little" : id==="level_medium" ? "medium" : "very";
+      setMsg();
+      refreshNextDisabled();
+    }, true);
+
+    setMsg();
+  }
+
+  if(stepId === "pickScenario"){
+    document.querySelectorAll("[data-scenario]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const k = el.getAttribute("data-scenario");
+        state.scenarioKey = k;
+
+        // Reset scenario-specific selections
+        state.selectedSignals = new Set();
+        state.chosenWorryThought = null;
+        state.chosenBraveThought = null;
+        state.chosenStep = null;
+        state.chosenScriptIndex = null;
+        state.revealLineIndex = 0;
+        state.lastTryResult = null;
+
+        render(); // easiest: rerender to show Selected tag
+      });
+    });
+  }
+
+  if(stepId === "signals"){
+    const s = currentScenario();
+    s.bodySignals.forEach((t,i)=>{
+      const id = `sig_${i}`;
+      const el = document.getElementById(id);
+      el.addEventListener("click", ()=>{
+        const pressed = el.getAttribute("aria-pressed")==="true";
+        el.setAttribute("aria-pressed", pressed ? "false" : "true");
+        if(pressed) state.selectedSignals.delete(t);
+        else state.selectedSignals.add(t);
+        refreshNextDisabled();
+      });
+    });
+  }
+
+  if(stepId === "reset"){
+    // Exhale reset: simple 6-second exhale countdown
+    const doExhale = document.getElementById("doExhale");
+    const stopExhale = document.getElementById("stopExhale");
+    const exhaleCount = document.getElementById("exhaleCount");
+    let timer = null;
+
+    doExhale.addEventListener("click", ()=>{
+      if(timer) return;
+      exhaleCount.style.display = "block";
+      stopExhale.disabled = false;
+
+      let t = 6;
+      exhaleCount.textContent = t;
+      timer = setInterval(()=>{
+        t--;
+        exhaleCount.textContent = t;
+        if(t <= 0){
+          clearInterval(timer);
+          timer = null;
+          exhaleCount.textContent = "Done";
+          stopExhale.disabled = true;
+        }
+      }, 700);
+    });
+
+    stopExhale.addEventListener("click", ()=>{
+      if(timer){
+        clearInterval(timer);
+        timer = null;
+      }
+      exhaleCount.textContent = "";
+      exhaleCount.style.display = "none";
+      stopExhale.disabled = true;
+    });
+
+    const shoulderMsg = document.getElementById("shoulderMsg");
+    document.getElementById("doShoulders").addEventListener("click", ()=>{
+      shoulderMsg.textContent = "Lift shoulders up… drop… soften your jaw… good.";
+    });
+
+    const palmMsg = document.getElementById("palmMsg");
+    document.getElementById("doPalms").addEventListener("click", ()=>{
+      palmMsg.textContent = "Press palms… count to 10… feel steady.";
+    });
+  }
+
+  if(stepId === "thoughts"){
+    const s = currentScenario();
+
+    // Worry thoughts (single select)
+    s.worryThoughts.forEach((t,i)=>{
+      const id = `wt_${i}`;
+      document.getElementById(id).addEventListener("click", ()=>{
+        state.chosenWorryThought = t;
+        // rerender to update selection style
+        render();
+      });
+    });
+
+    // Brave thoughts (single select)
+    s.braveThoughts.forEach((t,i)=>{
+      const id = `bt_${i}`;
+      document.getElementById(id).addEventListener("click", ()=>{
+        state.chosenBraveThought = t;
+        render();
+      });
+    });
+  }
+
+  if(stepId === "ladder"){
+    const s = currentScenario();
+    // Click each list item by building buttons for each step (simpler: convert list items)
+    document.querySelectorAll("[data-stepchoice]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const text = el.getAttribute("data-stepchoice");
+        state.chosenStep = text;
+        render();
+      });
+    });
+
+    // Re-wire because render() rebuilds DOM; so we place clickables directly in ladderCard() output below.
+  }
+
+  if(stepId === "practice"){
+    // select script
+    document.querySelectorAll("[data-script]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        state.chosenScriptIndex = Number(el.getAttribute("data-script"));
+        state.revealLineIndex = 0;
+        render();
+      });
+    });
+
+    const s = currentScenario();
+    if(state.chosenScriptIndex !== null){
+      const chosen = s.scripts[state.chosenScriptIndex];
+      const revealBtn = document.getElementById("revealLine");
+      const resetBtn = document.getElementById("resetReveal");
+
+      if(revealBtn){
+        revealBtn.addEventListener("click", ()=>{
+          if(state.revealLineIndex < chosen.lines.length){
+            state.revealLineIndex++;
+            render();
+          }
+        });
+      }
+      if(resetBtn){
+        resetBtn.addEventListener("click", ()=>{
+          state.revealLineIndex = 0;
+          render();
+        });
+      }
+    }
+  }
+
+  if(stepId === "goTry"){
+    const countPanel = document.getElementById("countPanel");
+    const goCount = document.getElementById("goCount");
+    const goMsg = document.getElementById("goMsg");
+
+    document.getElementById("notYetBtn").addEventListener("click", ()=>{
+      // go back to ladder and encourage easy
+      goStep(8); // ladder step index
+    });
+
+    document.getElementById("goTryBtn").addEventListener("click", ()=>{
+      stats.attempts++;
+      saveStats();
+      updateKPIs();
+
+      countPanel.style.display = "block";
+      let t = 3;
+      goCount.textContent = t;
+      goMsg.textContent = "When it reaches 0, try your brave step.";
+      const timer = setInterval(()=>{
+        t--;
+        goCount.textContent = t;
+        if(t <= 0){
+          clearInterval(timer);
+          goCount.textContent = "Go";
+          goMsg.textContent = "Try your brave step now. You can come back and check in.";
+        }
+      }, 850);
+    });
+  }
+
+  if(stepId === "checkback"){
+    const resultPanel = document.getElementById("resultPanel");
+    const yes = document.getElementById("yesTried");
+    const no = document.getElementById("notTried");
+
+    function showResultUI(){
+      resultPanel.style.display = "block";
+      resultPanel.innerHTML = `
+        <div class="panel">
+          <h3>How did it feel?</h3>
+          <div class="btnRow">
+            <button class="btn secondary" data-feel="hard">Hard, but I did it</button>
+            <button class="btn secondary" data-feel="okay">It was okay</button>
+            <button class="btn secondary" data-feel="easier">Easier than I thought</button>
+          </div>
+          <div class="mini" style="margin-top:10px;">You practiced bravery. That builds confidence.</div>
+        </div>
+      `;
+
+      resultPanel.querySelectorAll("[data-feel]").forEach(b=>{
+        b.addEventListener("click", ()=>{
+          const v = b.getAttribute("data-feel");
+          state.lastTryResult = v;
+          stats.wins++;
+          saveStats();
+          updateKPIs();
+          render();
+        });
+      });
+
+      refreshNextDisabled();
+    }
+
+    yes.addEventListener("click", ()=>{
+      showResultUI();
+    });
+
+    no.addEventListener("click", ()=>{
+      // send them back to practice
+      state.lastTryResult = null;
+      goStep(9); // practice step
+    });
+  }
+
+  if(stepId === "finish"){
+    const again = document.getElementById("againBtn");
+    if(again){
+      again.addEventListener("click", ()=>{
+        // reset session but keep stats/unlock
+        const unlocked = state.unlocked;
+        state = {...DEFAULT_STATE, unlocked};
+        state.stepIndex = 1; // landing
+        render();
+      });
+    }
+  }
+
+  // Fix ladder selection wiring (needs DOM after render)
+  if(stepId === "ladder"){
+    document.querySelectorAll("[data-stepchoice]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        state.chosenStep = el.getAttribute("data-stepchoice");
+        render();
+      });
+    });
+  }
+}
+
+// ---------------- Helpers ----------------
+function choicePill(id, label, pressed){
+  return `<button class="pill" id="${id}" aria-pressed="${pressed ? "true":"false"}" type="button">${escapeHtml(label)}</button>`;
+}
+
+function wirePillGroup(ids, onPick, singleSelect){
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener("click", ()=>{
+      if(singleSelect){
+        ids.forEach(other=>{
+          const o = document.getElementById(other);
+          o.setAttribute("aria-pressed", "false");
+        });
+      }
+      el.setAttribute("aria-pressed", "true");
+      onPick(id);
+    });
+  });
+}
+
+function ladderCard(title, items, key){
+  // Adjust order based on nervous level (if very nervous, we visually nudge easy)
+  const isVery = state.nervousLevel === "very";
+  const isEasy = key === "easy";
+  const border = isVery && isEasy ? "rgba(34,166,213,.35)" : "var(--line)";
+  const bg = isVery && isEasy ? "rgba(34,166,213,.06)" : "#fff";
+
+  return `
+    <div class="levelCard" style="border-color:${border}; background:${bg};">
+      <h4>${escapeHtml(title)}</h4>
+      <ul>
+        ${items.map(it=>{
+          const chosen = state.chosenStep === it;
+          return `
+            <li>
+              <button class="pill" type="button" data-stepchoice="${escapeHtmlAttr(it)}" aria-pressed="${chosen ? "true":"false"}">
+                ${escapeHtml(it)}
+              </button>
+            </li>
+          `;
+        }).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>(
+    s==="&"?"&amp;":s==="<"?"&lt;":s===">"?"&gt;":s==='"'?"&quot;":"&#39;"
+  ));
+}
+function escapeHtmlAttr(str){
+  return escapeHtml(str).replace(/"/g, "&quot;");
+}
+</script>
+</body>
+</html>
